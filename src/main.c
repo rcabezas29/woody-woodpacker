@@ -1,5 +1,9 @@
 #include <woody-woodpacker.h>
 
+#define MELF_IMPLEMENTATION
+#include <melf.h>
+
+
 unsigned char *generate_key(void)
 {
 	unsigned char *key = malloc(KEY_SIZE);
@@ -55,7 +59,6 @@ int	main(int argc, char **argv)
 	unsigned char *key = generate_key();
 	if (key == NULL)
 		return -1;
-	printf("key_value: %s\n", key);
 
 	woody_fd = open("./woody", O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
 	if (woody_fd == -1)
@@ -66,6 +69,18 @@ int	main(int argc, char **argv)
 		close(woody_fd);
 		return 1;
 	}
+
+	// Detect elf file
+	melf_identifier *identifier = melf_read_identifier(progfd);
+	if (identifier == NULL || identifier->class != 2)
+	{
+		close(progfd);
+		close(woody_fd);
+		print_usage();
+	}
+
+	lseek(progfd, 0, SEEK_SET);
+
 	char	buffer[64];
 	int		ret;
 	while ((ret = read(progfd, buffer, 64)) > 0)
@@ -74,6 +89,7 @@ int	main(int argc, char **argv)
 			buffer[i] ^= key[i];
 		write(woody_fd, buffer, ret);
 	}
+	printf("key_value: %s\n", key);
 
 	free(key);
 	close(woody_fd);
