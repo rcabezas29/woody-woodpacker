@@ -2,13 +2,11 @@
 #                                   PROGRAM                                    #
 # **************************************************************************** #
 
-NAME = $(BUILD_DIR)/ft_shield
+NAME = $(BUILD_DIR)/woody-woodpacker
 
 # **************************************************************************** #
 #                                     VARS                                     #
 # **************************************************************************** #
-
-UNAME_S := $(shell uname -s)
 
 MAKE = make
 
@@ -30,8 +28,8 @@ CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow
 # **************************************************************************** #
 
 BUILD_DIR := build
-SRC_DIR := srcs
-INC_DIR := includes
+SRC_DIR := src
+INC_DIR := inc
 
 SRCS := $(shell find $(SRC_DIR) -name '*.c')
 OBJS := $(SRCS:%.c=$(BUILD_DIR)/%.o)
