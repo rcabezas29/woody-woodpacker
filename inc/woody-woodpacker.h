@@ -6,4 +6,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 
+#define KEY_SIZE 64
+
 #endif
