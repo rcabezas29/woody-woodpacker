@@ -1,7 +1,7 @@
 #ifndef MELF_H
 #define MELF_H
 
-#define MELF_MAGIC_NUMBER "\x7f""ELF"
+#define MELF_MAGIC_NUMBER  0x464C457F
 
 #include <stdint.h>
 #include <string.h>
@@ -32,7 +32,7 @@ melf_identifier *melf_read_identifier(int fd)
         free(identifier);
         return NULL;
     }
-    if (memcmp(&identifier->magic_number, MELF_MAGIC_NUMBER, sizeof(uint32_t)) != 0)
+    if (identifier->magic_number != (uint32_t)MELF_MAGIC_NUMBER)
     {
         free(identifier);
         return NULL;
