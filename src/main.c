@@ -75,7 +75,7 @@ int	main(int argc, char **argv)
 	if (!melf_is_elf64(progfd))
 		print_usage();
 
-	melf_64 *file = melf_read_header64(progfd); 
+	melf_file_header64 *file = melf_read_header64(progfd); 
 	if (file == NULL)
 	{
 		close(progfd);

@@ -33,14 +33,25 @@ typedef struct {
 	uint16_t section_entry_size;
 	uint16_t section_entry_number;
 	uint16_t section_header_string_index;
-} melf_64;
+} melf_file_header64;
+
+typedef struct { 
+	uint32_t type;
+	uint32_t flags;
+	uint64_t offset;
+	uint64_t virtual_address;
+	uint64_t physical_address;
+	uint64_t file_size;
+	uint64_t memory_size;
+	uint64_t align;
+} melf_program_header64;
 
 
 bool melf_is_elf(int fd);
 bool melf_is_elf64(int fd);
 
-melf_identifier *melf_read_identifier(int fd);
-melf_64         *melf_read_header64(int fd);
+melf_identifier 	*melf_read_identifier(int fd);
+melf_file_header64	*melf_read_header64(int fd);
 
 
 #ifdef MELF_IMPLEMENTATION
@@ -96,14 +107,14 @@ melf_identifier *melf_read_identifier(int fd)
 	return identifier;
 }
 
-melf_64 *melf_read_header64(int fd)
+melf_file_header64 *melf_read_header64(int fd)
 {
-	melf_64 *file = malloc(sizeof(melf_64));
+	melf_file_header64 *file = malloc(sizeof(melf_file_header64));
 	if (file == NULL)
 		return NULL;
 	
-	int ret = read(fd, file, sizeof(melf_64));
-	if (ret != (int) sizeof(melf_64))
+	int ret = read(fd, file, sizeof(melf_file_header64));
+	if (ret != (int) sizeof(melf_file_header64))
 	{
 		free(file);
 		return NULL;
