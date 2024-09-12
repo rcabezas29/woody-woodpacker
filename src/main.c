@@ -49,6 +49,7 @@ void	print_usage(void)
 	printf("Usage: ./woody-woodpacker [ELF Binary]\n");
 	exit(1);
 }
+#include <elf.h>
 
 int	main(int argc, char **argv)
 {
@@ -71,15 +72,18 @@ int	main(int argc, char **argv)
 	}
 
 	// Detect elf file
-	melf_identifier *identifier = melf_read_identifier(progfd);
-	if (identifier == NULL || identifier->class != 2)
+	if (!melf_is_elf64(progfd))
+		print_usage();
+
+	melf_64 *file = melf_read_header64(progfd); 
+	if (file == NULL)
 	{
 		close(progfd);
 		close(woody_fd);
 		print_usage();
 	}
+	printf("Entry point = %lx\n", file->entry_point);
 
-	lseek(progfd, 0, SEEK_SET);
 
 	char	buffer[64];
 	int		ret;
@@ -92,6 +96,7 @@ int	main(int argc, char **argv)
 	printf("key_value: %s\n", key);
 
 	free(key);
+	free(file);
 	close(woody_fd);
 	close(progfd);
 	return 0;
