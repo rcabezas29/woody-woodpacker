@@ -3,6 +3,7 @@
 #define MELF_IMPLEMENTATION
 #include <melf.h>
 
+const char *instructions = "\x48\x31\xFF\xB8\x3C\x00\x00\x00\x0F\x05";
 
 unsigned char *generate_key(void)
 {
@@ -43,7 +44,7 @@ unsigned char *generate_key(void)
 	return key;
 }
 
-uint64_t find_code_cave(uint8_t *buffer, uint64_t size)
+uint64_t find_code_cave(uint8_t *buffer, uint64_t size, uint64_t *code_cave_size)
 {
 	uint64_t current_best = 0;
 	uint64_t max_size = 0, i = 0;
@@ -51,7 +52,7 @@ uint64_t find_code_cave(uint8_t *buffer, uint64_t size)
 	{
 		if (buffer[i] != 0)
 		{
-			i++;
+			++i;
 			continue;
 		}
 		uint64_t current_size = 0, j = i;
@@ -67,12 +68,9 @@ uint64_t find_code_cave(uint8_t *buffer, uint64_t size)
 		}
 		i = j;
 	}
-	
-	// for (uint64_t i = 0; i < size; ++i)
-	// {
-
-	// }
-	printf("Cave size = %li\n", max_size);
+	// printf("First char (0x%X) = 0x%x\n", current_best, buffer[current_best]);
+	// printf("First char = (0x%X) = 0x%x\n", current_best + max_size, buffer[current_best + max_size - 1]);
+	*code_cave_size = max_size; 
 	return current_best;
 }
 
@@ -94,7 +92,7 @@ int	main(int argc, char **argv)
 	if (key == NULL)
 		return -1;
 
-	woody_fd = open("./woody", O_CREAT |  O_TRUNC | O_RDWR, S_IRWXU);
+	woody_fd = open("./woody", O_CREAT |  O_TRUNC | O_RDWR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
 	if (woody_fd == -1)
 		return 1;
 	progfd = open(argv[1], O_RDONLY);
@@ -127,16 +125,61 @@ int	main(int argc, char **argv)
 		// 	buffer[i] ^= key[i];
 		write(woody_fd, buffer, ret);
 	}
+	sync();
 	printf("key_value: %s\n", key);
 
 
-	int size = lseek(woody_fd, 0, SEEK_END);
+	int size = lseek(progfd, 0, SEEK_END);
 	uint8_t *cave_buffer = malloc(size);
-	lseek(woody_fd, 0, SEEK_SET);
-	read(woody_fd, cave_buffer, size);
+	lseek(progfd, 0, SEEK_SET);
+	read(progfd, cave_buffer, size);
 
-	uint64_t code_cave_dir = find_code_cave(cave_buffer, size);
+	uint64_t code_cave_size;
+	uint64_t code_cave_dir = find_code_cave(cave_buffer, size, &code_cave_size);
 	printf("Code cave dir = 0x%lx\n", code_cave_dir);
+	printf("Cave size = %li\n", code_cave_size);
+
+	melf_program_header64 program_header;
+	uint16_t program_entry_number = file->program_entry_number;
+	lseek(progfd, file->program_header_offset, SEEK_SET);
+
+	for (uint16_t i = 0; i < program_entry_number; ++i)
+	{
+		read(progfd, &program_header, sizeof(program_header));
+		printf("Type = %i File Address = 0x%lx File size = 0x%lx\n\n", program_header.type, program_header.offset, program_header.file_size);
+		if (code_cave_dir >= program_header.offset && code_cave_dir + code_cave_size <= program_header.offset + program_header.align)
+		{
+			printf("Encontrado\n");
+			printf("Lugar en memoria = 0x%lx Tamaño = %lx\n", program_header.virtual_address, program_header.memory_size);
+
+
+			uint64_t new_entry_point = code_cave_dir + program_header.virtual_address - program_header.offset;
+			printf("New entry point = 0x%lx\n", new_entry_point);
+
+			program_header.flags |= PF_X;
+			lseek(woody_fd, file->program_header_offset + i * sizeof(program_entry_number), SEEK_SET);
+			write(woody_fd, &program_header, sizeof(program_header));
+
+			lseek(woody_fd, code_cave_dir, SEEK_SET);
+			write(woody_fd, instructions, 10);
+
+			file->entry_point = new_entry_point;
+			lseek(woody_fd, 0, SEEK_SET);
+			write(woody_fd, file, sizeof(melf_file_header64));
+			break;
+		}
+	}
+
+	// for (uint16_t i = 0; i < program_entry_number; ++i)
+	// {
+	// 	read(progfd, &program_header, sizeof(program_header));
+	// 	printf("Type = %i Virtual Address = %lx Mem size = %lx\n\n", program_header.type, program_header.virtual_address, program_header.memory_size);
+	// 	if (file->entry_point >= program_header.virtual_address && file->entry_point < program_header.virtual_address + program_header.memory_size)
+	// 	{
+	// 		printf("Encontrado\n");
+	// 		printf("Lugar en el fichero = 0x%lx Tama\n", program_header.offset);
+	// 	}
+	// }
 
 	free(key);
 	free(file);
