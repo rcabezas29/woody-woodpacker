@@ -21,7 +21,7 @@ RM = rm -rf
 
 CC = gcc
 # CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow -Wconversion
-#CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow
+CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow
 
 # **************************************************************************** #
 #                                   SOURCES                                    #
@@ -53,8 +53,10 @@ $(NAME): $(OBJS) $(LDLIBS)
 sanitize:: CFLAGS += -g3 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=bounds -fsanitize=null
 sanitize:: $(NAME)
 
-$(BUILD_DIR)/%.o: %.c
-	mkdir -p $(dir $@)
+$(BUILD_DIR)/src:
+	mkdir -p $@
+
+$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/src
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
