@@ -46,7 +46,6 @@ typedef struct {
 	uint64_t align;
 } melf_program_header64;
 
-
 bool melf_is_elf(int fd);
 bool melf_is_elf64(int fd);
 

@@ -29,7 +29,7 @@ CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow
 
 BUILD_DIR := build
 SRC_DIR := src
-INC_DIR := inc
+INC_DIR := includes
 
 SRCS := $(shell find $(SRC_DIR) -name '*.c')
 OBJS := $(SRCS:%.c=$(BUILD_DIR)/%.o)
@@ -53,10 +53,8 @@ $(NAME): $(OBJS) $(LDLIBS)
 sanitize:: CFLAGS += -g3 -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize=bounds -fsanitize=null
 sanitize:: $(NAME)
 
-$(BUILD_DIR)/src:
-	mkdir -p $@
-
-$(BUILD_DIR)/%.o: %.c $(BUILD_DIR)/src
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
 clean:
