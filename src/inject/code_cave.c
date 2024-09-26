@@ -49,25 +49,31 @@ woody_status	inject_code_cave(unsigned char *file, uint64_t file_size, unsigned 
 	else
 		printf("Code segment offset %lx, code segment size = %lx virtual address = %lx\n", next_segment->p_offset, next_segment->p_filesz, next_segment->p_vaddr);
 
-	uint64_t code_cave_size = next_segment->p_offset - (code_segment->p_offset + code_segment->p_filesz);
-	printf("Code cave size = 0x%lx\n", code_cave_size);
+	//uint64_t code_cave_size = next_segment->p_offset - (code_segment->p_offset + code_segment->p_filesz);
+	//printf("Code cave size = 0x%lx\n", code_cave_size);
 
 	// Patch jmp to the original code
-	for (uint64_t i = 0; i < payload_size; ++i)
-	{
-		if (payload[i] != 0x42)
-			continue;
-		uint64_t j = i;
-		while (payload[j] == 0x42)
-			++j;
-		if (j - i != 8)
-			continue;
-		uint64_t *pointer = (uint64_t *)(payload + i);
-		*pointer = code_segment->p_filesz + payload_size;
-	}
+	// for (uint64_t i = 0; i < payload_size; ++i)
+	// {
+	// 	if (payload[i] != 0x42)
+	// 		continue;
+	// 	uint64_t j = i;
+	// 	while (payload[j] == 0x42)
+	// 		++j;
+	// 	if (j - i != 8)
+	// 		continue;
+	// 	uint64_t *pointer = (uint64_t *)(payload + i);
+	// 	*pointer = file_header->e_entry;
+	// }
+
+	uint32_t jump_position = code_segment->p_filesz - (file_header->e_entry - code_segment->p_vaddr) + payload_size + 5;
+	jump_position *= -1;
 
 	file_header->e_entry = code_segment->p_vaddr + code_segment->p_filesz;
 	memmove(file + code_segment->p_offset + code_segment->p_filesz, payload, payload_size);
+	file[code_segment->p_offset + code_segment->p_filesz + payload_size] = '\xe9';
+	uint32_t *pointer = (uint32_t *)(file + code_segment->p_offset + code_segment->p_filesz + payload_size + 1);
+	*pointer = jump_position;
 
 	return WOODY_OK;
 }

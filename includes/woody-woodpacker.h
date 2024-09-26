@@ -26,5 +26,7 @@ woody_status	generate_key(uint64_t size, unsigned char key[size]);
 
 // utils.c
 void	print_usage(void);
+int     create_output_file(const char *input_file, off_t file_size);
+off_t   get_file_size(const char *input_file);
 
 #endif
