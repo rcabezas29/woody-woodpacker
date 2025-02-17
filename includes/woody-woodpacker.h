@@ -28,5 +28,6 @@ woody_status	generate_key(uint64_t size, unsigned char key[size]);
 void	print_usage(void);
 int     create_output_file(const char *input_file, off_t file_size);
 off_t   get_file_size(const char *input_file);
+Elf64_Shdr *get_text_section(unsigned char *file);
 
 #endif
