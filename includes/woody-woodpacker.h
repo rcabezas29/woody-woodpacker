@@ -29,5 +29,6 @@ void	print_usage(void);
 int     create_output_file(const char *input_file, off_t file_size);
 off_t   get_file_size(const char *input_file);
 Elf64_Shdr *get_text_section(unsigned char *file);
+Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *text_section);
 
 #endif

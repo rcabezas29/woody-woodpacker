@@ -7,16 +7,21 @@
 %define STDIN 0
 %define STDOUT 1
 
-global _start
-
 section .text
 
-_start:
+global _start
 
-_print_woody:
+_start:
+    push rax
+    push rdi
+    push rsi
+    push rdx
+
+    push rbp
     mov rbp, rsp
     sub rsp, 0x20
 
+_print_woody:
     mov qword [rsp], 0x2E2E2E2E
     mov qword [rsp + 4], 0x444F4F57
     mov qword [rsp + 8], 0x2E2E2E59
@@ -54,25 +59,35 @@ _start_decrypt:
     mov rdi, key           ; Address of key
     mov rcx, 64            ; Size of key
 
-decrypt_loop:
-    xor byte [rsi], byte [rdi]
-    inc rsi
-    inc rdi
-    dec rdx
-    test rdx, rdx
-    jz decrypt_done
-    cmp rdi, key + 64
-    jne decrypt_loop
-    mov rdi, key           ; Reset key pointer
-    jmp decrypt_loop
+; decrypt_loop:
+;     mov r8b, byte [rsi]
+;     mov r9b, byte [rdi]
+;     xor r8b, r9b
+;     mov [rsi], r8b
+;     inc rsi
+;     inc rdi
+;     dec rdx
+;     test rdx, rdx
+;     jz decrypt_done
+;     cmp rdi, key + 64
+;     jne decrypt_loop
+;     mov rdi, key           ; Reset key pointer
+;     jmp decrypt_loop
 
 decrypt_done:
+    mov rsp, rbp
+    pop rbp
+
     pop rdx
     pop rsi
     pop rdi
     pop rax
 
+    jmp _end
+
+_variables:
+text_start: times 8 nop    ; variable to store the start address of .text section
+text_size: times 8 nop     ; variable to store the size of .text section
+key: times 64 nop  ; buffer to store the key
+
 _end:
-key: times 64 db 0  ; buffer to store the key
-text_start: dq 0    ; variable to store the start address of .text section
-text_size: dq 0     ; variable to store the size of .text section

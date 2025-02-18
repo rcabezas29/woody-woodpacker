@@ -70,3 +70,18 @@ Elf64_Shdr *get_text_section(unsigned char *file)
 	}
 	return NULL;
 }
+
+Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *section)
+{
+	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
+	Elf64_Phdr *phdr = (Elf64_Phdr *)(file + ehdr->e_phoff);
+
+	for (int i = 0; i < ehdr->e_phnum; ++i)
+	{
+		if (phdr[i].p_type == PT_LOAD && section->sh_offset >= phdr[i].p_offset && section->sh_offset < phdr[i].p_offset + phdr[i].p_filesz)
+		{
+			return section->sh_offset - phdr[i].p_offset + phdr[i].p_vaddr;
+		}
+	}
+	return 0;
+}
