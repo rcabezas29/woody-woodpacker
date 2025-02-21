@@ -1,5 +1,5 @@
 %define KEY_SIZE 64
-%define WOODY_STACK_SIZE 78
+%define WOODY_STACK_SIZE 82
 
 %define SYS_READ 0
 %define SYS_WRITE 1
@@ -18,6 +18,7 @@ _start:
 
     sub rsp, WOODY_STACK_SIZE
     mov r15, rsp
+    mov qword [r15 + 14], 0x42424242
 
 _print_woody:
     mov qword [r15], 0x2E2E2E2E
@@ -45,7 +46,7 @@ _ask_key:
 _read_input_key:
     mov rax, SYS_READ
     mov rdi, STDIN
-    lea rsi, [r15 + 14]   ; buffer to store input
+    lea rsi, [r15 + 18]   ; buffer to store input
     mov rdx, 64    ; number of bytes to read
     syscall
 
@@ -54,28 +55,28 @@ _get_text_section_addr:
     .delta:
         pop rbp
         sub rbp, .delta
+    lea rax, [r15 + 14]
     lea rsi, [rbp + _start] ; (- TEXT SIZE) Save in rsi .text address
+    sub rsi, rax
 
-; _start_decrypt:
-;     mov rsi, [text_start]  ; Address of .text section
-;     mov rdx, [text_size]   ; Size of .text section
-;     mov rdi, key           ; Address of key
-;     mov rcx, 64            ; Size of key
+_start_decrypt:
+    lea rdx, [r15 + 14]   ; Size of .text section
+    lea rdi, [r15 + 18]           ; Address of key
 
-; decrypt_loop:
-;     mov r8b, byte [rsi]
-;     mov r9b, byte [rdi]
-;     xor r8b, r9b
-;     mov [rsi], r8b
-;     inc rsi
-;     inc rdi
-;     dec rdx
-;     test rdx, rdx
-;     jz decrypt_done
-;     cmp rdi, key + 64
-;     jne decrypt_loop
-;     mov rdi, key           ; Reset key pointer
-;     jmp decrypt_loop
+_decrypt_loop:
+    mov r8b, byte [rsi]
+    mov r9b, byte [rdi]
+    xor r8b, r9b
+    mov [rsi], r8b
+    inc rsi
+    inc rdi
+    dec rdx
+    test rdx, rdx
+    jz decrypt_done
+    cmp rdi, [r15 + 18 + 64]
+    jne _decrypt_loop
+    lea rdi, [r15 + 18]           ; Reset key pointer
+    jmp _decrypt_loop
 
 decrypt_done:
     add rsp, WOODY_STACK_SIZE
