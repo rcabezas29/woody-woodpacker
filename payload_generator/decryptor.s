@@ -18,7 +18,7 @@ _start:
 
     sub rsp, WOODY_STACK_SIZE
     mov r15, rsp
-    mov qword [r15 + 14], 0x42424242
+    mov qword r14, 0x4242424242424242
 
 _print_woody:
     mov qword [r15], 0x2E2E2E2E
@@ -47,7 +47,7 @@ _read_input_key:
     mov rax, SYS_READ
     mov rdi, STDIN
     lea rsi, [r15 + 18]   ; buffer to store input
-    mov rdx, 64    ; number of bytes to read
+    mov rdx, KEY_SIZE    ; number of bytes to read
     syscall
 
 _get_text_section_addr:
@@ -55,12 +55,12 @@ _get_text_section_addr:
     .delta:
         pop rbp
         sub rbp, .delta
-    lea rax, [r15 + 14]
-    lea rsi, [rbp + _start] ; (- TEXT SIZE) Save in rsi .text address
-    sub rsi, rax
+    mov rax, r14
+    lea rsi, [rbp + _start] ; Save in rsi .text address
+    sub rsi, rax ; (- TEXT SIZE)
 
 _start_decrypt:
-    lea rdx, [r15 + 14]   ; Size of .text section
+    mov rdx, r14   ; Size of .text section
     lea rdi, [r15 + 18]           ; Address of key
 
 _decrypt_loop:
