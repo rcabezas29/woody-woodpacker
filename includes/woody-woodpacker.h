@@ -14,6 +14,15 @@ typedef uint8_t woody_status;
 
 #define KEY_SIZE 64
 
+
+#define OEP		0xEAAEEAAEEAAEEAAE // Original Entry Point
+#define NEP		0xABBAABBAABBAABBA // New Entry Point
+#define OVA 	0xDEEDDEEDDEEDDEED // Original virtual address
+#define OVA 	0xDEEDDEEDDEEDDEED // Original virtual address
+#define CSZ		0xCEECCEECCEECCEEC // Code Size
+
+#define NOP_64	0x90
+
 // inject/code_cave.c
 
 Elf64_Phdr		*find_code_segment(unsigned char *file, Elf64_Ehdr *file_header);
@@ -22,6 +31,8 @@ woody_status	inject_code_cave(unsigned char *file, uint64_t file_size, unsigned 
 
 // encrypt.c
 void			encrypt_xor(unsigned char *buffer, uint64_t size, uint64_t key_size, unsigned char key[key_size]);
+void			encrypt_xor_temp(unsigned char *buffer, uint64_t size, unsigned char value);
+
 woody_status	generate_key(uint64_t size, unsigned char key[size]);
 
 // utils.c
@@ -30,5 +41,8 @@ int     create_output_file(const char *input_file, off_t file_size);
 off_t   get_file_size(const char *input_file);
 Elf64_Shdr *get_text_section(unsigned char *file);
 Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *text_section);
+
+// payload.s
+void	payload_address(void);
 
 #endif

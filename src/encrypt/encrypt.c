@@ -6,6 +6,12 @@ void	encrypt_xor(unsigned char *buffer, uint64_t size, uint64_t key_size, unsign
 		buffer[i] ^= key[i % key_size];
 }
 
+void	encrypt_xor_temp(unsigned char *buffer, uint64_t size, unsigned char value)
+{
+	for (uint64_t i = 0; i < size; i++)
+		buffer[i] ^= value;
+}
+
 woody_status generate_key(uint64_t size, unsigned char key[size])
 {
 	int urandom_fd = open("/dev/urandom", O_RDONLY);

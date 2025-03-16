@@ -21,7 +21,9 @@ RM = rm -rf
 
 CC = gcc
 # CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow -Wconversion
-CFLAGS = -Wall -Wextra -Werror -Wpedantic -Wshadow -g3
+CFLAGS = -Wall -Wextra -Werror -Wshadow -g3
+NASM = nasm
+NASM_FLAGS = -f elf64
 
 # **************************************************************************** #
 #                                   SOURCES                                    #
@@ -32,7 +34,9 @@ SRC_DIR := src
 INC_DIR := includes
 
 SRCS := $(shell find $(SRC_DIR) -name '*.c')
+SRCS_ASM := $(shell find $(SRC_DIR) -name '*.s')
 OBJS := $(SRCS:%.c=$(BUILD_DIR)/%.o)
+OBJS += $(SRCS_ASM:%.s=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)
 
 # **************************************************************************** #
@@ -56,6 +60,10 @@ sanitize:: $(NAME)
 $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+
+$(BUILD_DIR)/%.o: %.s
+	@mkdir -p $(dir $@)
+	$(NASM) $(NASM_FLAGS) -o $@ $<
 
 clean:
 	$(RM) $(OBJS)
