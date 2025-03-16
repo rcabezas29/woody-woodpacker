@@ -1,6 +1,7 @@
 #include <woody-woodpacker.h>
 #include <sys/syscall.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 #include <melf.h>
 
 void	print_usage(void)
@@ -11,37 +12,40 @@ void	print_usage(void)
 
 int create_output_file(const char *input_file, off_t file_size)
 {
-	
-	int prog_fd = open(input_file, O_RDONLY);
-	if (prog_fd == -1)
+	int input_fd = -1, output_fd = -1;
+
+	if ((input_fd = open(input_file, O_RDONLY)) == -1)
 	{
-		perror("Can't open input file");
-		goto error;
-	}
-	if (!melf_is_elf64(prog_fd))
-	{
-		fprintf(stderr, "File isn't elf64\n");
+		perror("Unable to open input file");
 		goto error;
 	}
 
-	int woody_fd = open("./woody", O_CREAT |  O_TRUNC | O_RDWR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
-	if (woody_fd == -1)
+	uint8_t * buffer = mmap(0, file_size, PROT_READ, MAP_SHARED, input_fd, 0);
+	if (!melf_is_elf64(buffer, file_size))
 	{
-		perror("Can't create output file");
+		fprintf(stderr, "The provided file is not a valid 64 ELF executable\n");
+		goto error;
+	}
+	munmap(buffer, file_size);
+
+	if ((output_fd = open("./woody", O_CREAT |  O_TRUNC | O_RDWR, S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) == -1)
+	{
+		perror("Unable to create output file");
 		goto error;
 	}
 
-	if (syscall(SYS_sendfile, woody_fd, prog_fd, NULL, file_size) == -1)
+	if (syscall(SYS_sendfile, output_fd, input_fd, NULL, file_size) == -1)
 	{
-		close(woody_fd);
-		perror("Can't write in output file");
+		perror("Unable to write in output file");
 		goto error;
 	}
-	close(prog_fd);
-	return woody_fd;
+
+	close(input_fd);
+	return output_fd;
 
 error:
-	close(prog_fd);
+	close(input_fd);
+	close(output_fd);
 	return -1;
 }
 
@@ -51,37 +55,36 @@ off_t get_file_size(const char *input_file)
 	// if (syscall(SYS_fstat, input_file, &statbuf))
 	if (stat(input_file, &statbuf) == -1)
 	{
-		perror("Can't get file size");
 		return -1;
 	}
 	return statbuf.st_size;
 }
 
-Elf64_Shdr *get_text_section(unsigned char *file)
-{
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
-	Elf64_Shdr *shdr = (Elf64_Shdr *)(file + ehdr->e_shoff);
-	const char *shstrtab = (const char *)(file + shdr[ehdr->e_shstrndx].sh_offset);
+// Elf64_Shdr *get_text_section(unsigned char *file)
+// {
+// 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
+// 	Elf64_Shdr *shdr = (Elf64_Shdr *)(file + ehdr->e_shoff);
+// 	const char *shstrtab = (const char *)(file + shdr[ehdr->e_shstrndx].sh_offset);
 
-	for (int i = 0; i < ehdr->e_shnum; ++i)
-	{
-		if (strcmp(shstrtab + shdr[i].sh_name, ".text") == 0)
-			return &shdr[i];
-	}
-	return NULL;
-}
+// 	for (int i = 0; i < ehdr->e_shnum; ++i)
+// 	{
+// 		if (strcmp(shstrtab + shdr[i].sh_name, ".text") == 0)
+// 			return &shdr[i];
+// 	}
+// 	return NULL;
+// }
 
-Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *section)
-{
-	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
-	Elf64_Phdr *phdr = (Elf64_Phdr *)(file + ehdr->e_phoff);
+// Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *section)
+// {
+// 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
+// 	Elf64_Phdr *phdr = (Elf64_Phdr *)(file + ehdr->e_phoff);
 
-	for (int i = 0; i < ehdr->e_phnum; ++i)
-	{
-		if (phdr[i].p_type == PT_LOAD && section->sh_offset >= phdr[i].p_offset && section->sh_offset < phdr[i].p_offset + phdr[i].p_filesz)
-		{
-			return section->sh_offset - phdr[i].p_offset + phdr[i].p_vaddr;
-		}
-	}
-	return 0;
-}
+// 	for (int i = 0; i < ehdr->e_phnum; ++i)
+// 	{
+// 		if (phdr[i].p_type == PT_LOAD && section->sh_offset >= phdr[i].p_offset && section->sh_offset < phdr[i].p_offset + phdr[i].p_filesz)
+// 		{
+// 			return section->sh_offset - phdr[i].p_offset + phdr[i].p_vaddr;
+// 		}
+// 	}
+// 	return 0;
+// }

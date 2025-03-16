@@ -82,11 +82,23 @@ payload_address:
     ask_key_string db 'key: '
     key_string_len equ $-ask_key_string
 
-    newline db 0xA
+    error_string db 'Wrong key size!', 0xA
+    error_string_len equ $-error_string
 
     get_rip:
         mov rax, [rsp]
         ret
+
+    error:
+        mov rax, SYS_WRITE
+        mov rdi, STDOUT
+        lea rsi, [rel error_string]
+        mov rdx, error_string_len
+        syscall
+
+        mov rax, SYS_EXIT
+        mov rdi, 1
+        syscall
 
 print_woody:
     mov rax, SYS_WRITE
@@ -109,6 +121,13 @@ print_woody:
     lea rsi, [r15 + 0x20]
     mov rdx, KEY_SIZE + 1
     syscall
+
+    cmp rax, KEY_SIZE + 1
+    jne error
+    lea rsi, [r15 + 0x20]
+    add rsi, KEY_SIZE
+    cmp byte [rsi], 0xA
+    jne error
 
 ; Change memory permissions
     mprotect 0x7 ; Read, write and exec permissions

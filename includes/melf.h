@@ -46,8 +46,8 @@ typedef struct {
 	uint64_t align;
 } melf_program_header64;
 
-bool melf_is_elf(int fd);
-bool melf_is_elf64(int fd);
+bool melf_is_elf(uint8_t const *file, uint64_t const file_size);
+bool melf_is_elf64(uint8_t const *file, uint64_t const file_size);
 
 melf_identifier 	*melf_read_identifier(int fd);
 melf_file_header64	*melf_read_header64(int fd);
@@ -55,38 +55,21 @@ melf_file_header64	*melf_read_header64(int fd);
 
 #ifdef MELF_IMPLEMENTATION
 
-bool melf_is_elf(int fd)
+bool melf_is_elf(uint8_t const *file, uint64_t const file_size)
 {
-	uint32_t magic_number;
-	lseek(fd, 0, SEEK_SET);
-	int ret = read(fd, &magic_number, sizeof(magic_number));
-	if (ret != (int) sizeof(magic_number) || magic_number != MELF_MAGIC_NUMBER)
-	{
-		lseek(fd, 0, SEEK_SET);
+	melf_identifier *identifier = (melf_identifier *)file;
+	if (file_size < sizeof(melf_identifier) || identifier->magic_number != MELF_MAGIC_NUMBER)
 		return false;
-	}
-	lseek(fd, 0, SEEK_SET);
 	return true;
 }
-bool melf_is_elf64(int fd)
-{
-	uint32_t magic_number;
-	uint8_t class;
 
-	lseek(fd, 0, SEEK_SET);
-	int ret = read(fd, &magic_number, sizeof(magic_number));
-	if (ret != (int) sizeof(magic_number) || magic_number != MELF_MAGIC_NUMBER)
-	{
-		lseek(fd, 0, SEEK_SET);
+bool melf_is_elf64(uint8_t const *file, uint64_t const file_size)
+{
+	melf_identifier *identifier = (melf_identifier *)file;
+	if (file_size < sizeof(melf_identifier) || identifier->magic_number != MELF_MAGIC_NUMBER)
 		return false;
-	}
-	ret = read(fd, &class, sizeof(class));
-	if (ret != (int) sizeof(class) || class != MELF_CLASS64)
-	{
-		lseek(fd, 0, SEEK_SET);
+	if (identifier->class != MELF_CLASS64)
 		return false;
-	}
-	lseek(fd, 0, SEEK_SET);
 	return true;
 }
 
