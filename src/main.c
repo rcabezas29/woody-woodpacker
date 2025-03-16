@@ -11,7 +11,7 @@ int	main(int argc, char **argv)
 {
 	woody_status return_value = WOODY_ERR;
 	unsigned char key[KEY_SIZE + 1];
-	off_t file_size;
+	off_t file_size = 0;
 	int output_fd = -1;
 	payload_t payload = { .value = NULL, .size = 0};
 	uint8_t *file = NULL;
