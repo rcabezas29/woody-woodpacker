@@ -55,8 +55,8 @@ int	main(int argc, char **argv)
     //memcpy(payload + OFFSET_TO_TEXT_SEGMENT_SIZE, &text_segment->p_memsz, sizeof(text_segment->p_memsz));
 	if (inject_code_cave(file, file_size, payload, payload_size) == WOODY_ERR)
 		fprintf(stderr, "Error injecting code\n");
-	encrypt_xor_temp(file + text_segment->p_offset, text_segment->p_filesz, 0x20);
-	//encrypt_xor(file + text_segment->p_offset, text_segment->p_memsz, 64, key);
+	//encrypt_xor_temp(file + text_segment->p_offset, text_segment->p_filesz, 0x20);
+	encrypt_xor(file + text_segment->p_offset, text_segment->p_filesz, KEY_SIZE, key);
 	printf("key_value: %s\n", key);
 
 	free(payload);

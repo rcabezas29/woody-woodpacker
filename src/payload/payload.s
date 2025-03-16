@@ -1,5 +1,5 @@
 %define KEY_SIZE 64
-%define WOODY_STACK_SIZE 82
+%define WOODY_STACK_SIZE 0x70
 
 %define OEP 0xEAAEEAAEEAAEEAAE ; Original Entry Point
 %define NEP 0xABBAABBAABBAABBA ; New Entry Point
@@ -38,10 +38,11 @@
 
 %endmacro
 
-; Code Original Size = r15 (Size 8)
-; Original Entry Point = r15 + 0x8 (Size 8)
-; Randomized base address = r15 + 0x10 (Size 8)
-; Original Virtual Address = r15 + 0x18 (Size 8)
+; Code Original Size = r15 (Size 0x8)
+; Original Entry Point = r15 + 0x8 (Size 0x8)
+; Randomized base address = r15 + 0x10 (Size 0x8)
+; Original Virtual Address = r15 + 0x18 (Size 0x8)
+; Decryption Key = r15 + 0x20 (Size 0x41)
 
 section .note.GNU-stack
 
@@ -77,35 +78,60 @@ payload_address:
 
     woody_string db '....WOODY....', 0xA
     woody_len equ $-woody_string
-    a db 'Funciona', 0xA
-    b db 'No funciona', 0xA
+
+    ask_key_string db 'key: '
+    key_string_len equ $-ask_key_string
+
+    newline db 0xA
 
     get_rip:
         mov rax, [rsp]
         ret
 
 print_woody:
-    mov rax, 1
-    mov rdi, 1
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
     lea rsi, [rel woody_string]
     mov rdx, woody_len
     syscall
 
+; Ask key
+    mov rax, SYS_WRITE
+    mov rdi, STDOUT
+    lea rsi, [rel ask_key_string]
+    mov rdx, key_string_len
+    syscall
 
+
+; Read key
+    mov rax, SYS_READ
+    mov rdi, STDIN
+    lea rsi, [r15 + 0x20]
+    mov rdx, KEY_SIZE + 1
+    syscall
+
+; Change memory permissions
     mprotect 0x7 ; Read, write and exec permissions
 
 ; Start decryption
-    mov rsi, [r15 + 0x10] ; Load Randomized Base Address
-    mov rdi, [r15 + 0x18] ; Load Original Virtual Address
-    add rsi, rdi          ; Compute Runtime Virtual Address
-    xor rdi, rdi
-    mov al, 0x20
+    mov rdi, [r15 + 0x10] ; Load Randomized Base Address
+    add rdi, [r15 + 0x18] ; Compute Runtime Virtual Address
+    xor r8, r8            ; Start counter to 0
+    lea r14, [r15 + 0x20] ; Load decryption key
 decrypt_loop:
-    xor byte [rsi], al
-    inc rsi
+    mov rax, r8
+    xor rdx, rdx
+    mov ecx, KEY_SIZE
+    div ecx
+    add rdx, r14
+    mov al, [rdx]
+    xor byte [rdi], al
+
     inc rdi
-    cmp rdi, [rsp]
+    inc r8
+    cmp r8, [rsp]
     jne decrypt_loop
+
 
     mprotect 0x5 ; Read and exec permissions
 
