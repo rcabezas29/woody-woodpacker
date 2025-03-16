@@ -26,22 +26,17 @@ typedef struct {
 	uint64_t size;
 } payload_t;
 
-// inject/code_cave.c
-
-Elf64_Phdr		*find_code_segment(unsigned char *file, Elf64_Ehdr *file_header);
-Elf64_Phdr		*find_next_segment(unsigned char *file, Elf64_Ehdr *file_header, Elf64_Phdr *current_segment);
-woody_status	inject_code_cave(unsigned char *file, uint64_t file_size, unsigned char *payload, uint64_t payload_size);
+// inject_payload.c
+woody_status	inject_payload(unsigned char *file, uint64_t file_size, unsigned char *payload, uint64_t payload_size);
 
 // encrypt.c
-void			encrypt_xor(uint8_t *buffer, uint64_t const size, uint64_t const key_size, uint8_t const key[key_size]);
 woody_status	generate_key(uint64_t const size, uint8_t key[size]);
+void			encrypt_xor(uint8_t *buffer, uint64_t const size, uint64_t const key_size, uint8_t const key[key_size]);
 
 // utils.c
 void	print_usage(void);
-int		create_output_file(const char *input_file, off_t file_size);
 off_t	get_file_size(const char *input_file);
-// Elf64_Shdr *get_text_section(unsigned char *file);
-// Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *text_section);
+int		create_output_file(const char *input_file, off_t file_size);
 
 // generate_payload.c
 woody_status generate_payload(payload_t *payload);

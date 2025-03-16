@@ -49,9 +49,8 @@ typedef struct {
 bool melf_is_elf(uint8_t const *file, uint64_t const file_size);
 bool melf_is_elf64(uint8_t const *file, uint64_t const file_size);
 
-melf_identifier 	*melf_read_identifier(int fd);
-melf_file_header64	*melf_read_header64(int fd);
-
+melf_program_header64 *melf_get_text_segment(uint8_t const *file);
+melf_program_header64 *melf_get_next_segment(uint8_t const *file, melf_program_header64 *current_segment);
 
 #ifdef MELF_IMPLEMENTATION
 
@@ -73,35 +72,34 @@ bool melf_is_elf64(uint8_t const *file, uint64_t const file_size)
 	return true;
 }
 
-melf_identifier *melf_read_identifier(int fd)
+melf_program_header64 *melf_get_text_segment(uint8_t const *file)
 {
-	melf_identifier *identifier = malloc(sizeof(melf_identifier));
-	if (identifier == NULL)
-		return NULL;
-	
-	int ret = read(fd, identifier, sizeof(melf_identifier));
-	if (ret != (int) sizeof(melf_identifier))
-	{
-		free(identifier);
-		return NULL;
-	}
+	melf_file_header64 *file_header = (melf_file_header64 *)file;
+    melf_program_header64 *program_header;
 
-	return identifier;
+    for (Elf64_Half i = 0; i < file_header->program_entry_number; ++i)
+    {
+        program_header = (melf_program_header64 *)(file + file_header->program_header_offset + file_header->program_entry_size * i);
+        if (file_header->entry_point >= program_header->virtual_address 
+			&& file_header->entry_point < program_header->virtual_address + program_header->memory_size)
+            return program_header;
+    }
+    return NULL;
 }
 
-melf_file_header64 *melf_read_header64(int fd)
+melf_program_header64 *melf_get_next_segment(uint8_t const *file, melf_program_header64 *current_segment)
 {
-	melf_file_header64 *file = malloc(sizeof(melf_file_header64));
-	if (file == NULL)
-		return NULL;
-	
-	int ret = read(fd, file, sizeof(melf_file_header64));
-	if (ret != (int) sizeof(melf_file_header64))
-	{
-		free(file);
-		return NULL;
-	}
-	return file;
+	melf_file_header64 *file_header = (melf_file_header64 *)file;
+    melf_program_header64  *program_header, *next_segment = NULL;
+
+    for (Elf64_Half i = 0; i < file_header->program_entry_number; ++i)
+    {
+        program_header = (melf_program_header64 *)(file + file_header->program_header_offset + file_header->program_entry_size * i);
+        if ((current_segment->offset < program_header->offset && next_segment == NULL) ||
+            (next_segment != NULL && current_segment->offset < program_header->offset && program_header->offset < next_segment->offset))
+            next_segment = program_header;
+    }
+    return next_segment;
 }
 
 #endif // MELF_IMPLEMENTATION 	

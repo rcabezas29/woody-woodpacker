@@ -4,8 +4,6 @@
 #include <melf.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <elf.h>
-#include <errno.h>
 
 int	main(int argc, char **argv)
 {
@@ -47,19 +45,19 @@ int	main(int argc, char **argv)
 		goto end;
 	}
 
-	Elf64_Phdr *text_segment = find_code_segment(file, (Elf64_Ehdr *)file);
+	melf_program_header64 *text_segment = melf_get_text_segment(file);
 	if (!text_segment)
 	{
 		fprintf(stderr, "Unable to find .text section\n");
 		goto end;
 	}
 
-	if (inject_code_cave(file, file_size, payload.value, payload.size) == WOODY_ERR)
+	if (inject_payload(file, file_size, payload.value, payload.size) == WOODY_ERR)
 	{
 		fprintf(stderr, "Error injecting code\n");
 		goto end;
 	}
-	encrypt_xor(file + text_segment->p_offset, text_segment->p_filesz, KEY_SIZE, key);
+	encrypt_xor(file + text_segment->offset, text_segment->file_size, KEY_SIZE, key);
 	printf("key_value: %s\n", key);
 
 	return_value = WOODY_OK;

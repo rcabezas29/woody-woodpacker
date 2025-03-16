@@ -10,6 +10,17 @@ void	print_usage(void)
 	exit(WOODY_ERR);
 }
 
+off_t get_file_size(const char *input_file)
+{
+	struct stat statbuf;
+	// if (syscall(SYS_fstat, input_file, &statbuf))
+	if (stat(input_file, &statbuf) == -1)
+	{
+		return -1;
+	}
+	return statbuf.st_size;
+}
+
 int create_output_file(const char *input_file, off_t file_size)
 {
 	int input_fd = -1, output_fd = -1;
@@ -48,43 +59,3 @@ error:
 	close(output_fd);
 	return -1;
 }
-
-off_t get_file_size(const char *input_file)
-{
-	struct stat statbuf;
-	// if (syscall(SYS_fstat, input_file, &statbuf))
-	if (stat(input_file, &statbuf) == -1)
-	{
-		return -1;
-	}
-	return statbuf.st_size;
-}
-
-// Elf64_Shdr *get_text_section(unsigned char *file)
-// {
-// 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
-// 	Elf64_Shdr *shdr = (Elf64_Shdr *)(file + ehdr->e_shoff);
-// 	const char *shstrtab = (const char *)(file + shdr[ehdr->e_shstrndx].sh_offset);
-
-// 	for (int i = 0; i < ehdr->e_shnum; ++i)
-// 	{
-// 		if (strcmp(shstrtab + shdr[i].sh_name, ".text") == 0)
-// 			return &shdr[i];
-// 	}
-// 	return NULL;
-// }
-
-// Elf64_Addr get_runtime_address(unsigned char *file, Elf64_Shdr *section)
-// {
-// 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)file;
-// 	Elf64_Phdr *phdr = (Elf64_Phdr *)(file + ehdr->e_phoff);
-
-// 	for (int i = 0; i < ehdr->e_phnum; ++i)
-// 	{
-// 		if (phdr[i].p_type == PT_LOAD && section->sh_offset >= phdr[i].p_offset && section->sh_offset < phdr[i].p_offset + phdr[i].p_filesz)
-// 		{
-// 			return section->sh_offset - phdr[i].p_offset + phdr[i].p_vaddr;
-// 		}
-// 	}
-// 	return 0;
-// }
