@@ -55,7 +55,7 @@ woody_status	inject_code_cave(unsigned char *file, uint64_t file_size, unsigned 
 	if (next_segment == NULL)
 		return WOODY_ERR;
 	//printf("Code segment offset %lx, code segment size = %lx virtual address = %lx\n", next_segment->p_offset, next_segment->p_filesz, next_segment->p_vaddr);
-	code_segment->p_flags |= PF_W;
+	//code_segment->p_flags |= PF_W;
 
 
 	//uint64_t code_cave_size = next_segment->p_offset - (code_segment->p_offset + code_segment->p_filesz);

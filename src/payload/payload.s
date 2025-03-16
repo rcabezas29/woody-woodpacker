@@ -21,9 +21,28 @@
 
 %define CALL_SIZE 5
 
+
+; The argument is used for protection flags
+%macro mprotect 1
+
+    mov rsi, [r15 + 0x10]
+    mov rdi, [r15 + 0x18]
+    add rdi, rsi
+    mov rax, 0xFFFFFFFFFFFFF000
+    ;not rax
+    and rdi, rax
+    mov rax, SYS_MPROTECT
+    mov rsi, [rsp]
+    mov rdx, %1 
+    syscall
+
+%endmacro
+
 ; Code Original Size = r15 (Size 8)
-; Original Entry Point = r15 + 8 (Size 8)
-; Randomized base address = r15 + 16 (Size 8)
+; Original Entry Point = r15 + 0x8 (Size 8)
+; Randomized base address = r15 + 0x10 (Size 8)
+; Original Virtual Address = r15 + 0x18 (Size 8)
+
 section .note.GNU-stack
 
 section .text
@@ -35,7 +54,6 @@ payload_address:
 
     ;; Calculate original entry point in runtime
     sub rax, CALL_SIZE
-    ;mov rsi, rax ; Keep payload origin for later
     mov rdi, NEP
     sub rax, rdi
     mov r14, rax ; Keep ramdomization base for later
@@ -49,8 +67,10 @@ payload_address:
 
     mov rsi, CSZ
     mov [r15], rsi
-    mov [r15 + 8], rax
-    mov [r15 + 16], r14
+    mov [r15 + 0x8], rax
+    mov [r15 + 0x10], r14
+    mov rsi, OVA
+    mov [r15 + 0x18], rsi
 
     jmp print_woody
 
@@ -71,22 +91,13 @@ print_woody:
     mov rdx, woody_len
     syscall
 
-    ; mov rdi, [rsp + 8]
-    ; mov rax, 0xFFFFFFFFFFFFF000
-    ; ;not rax
-    ; and rdi, rax
-    ; mov rax, SYS_MPROTECT
-    ; mov rsi, [rsp]
-    ; mov rdx, 0x7
-    ; syscall
-    ; mov rdi, rax
-    ; neg rdi
-    ; mov rax, SYS_EXIT
-    ; syscall
 
-    mov rsi, [rsp + 16]
-    mov rdi, OVA
-    add rsi, rdi
+    mprotect 0x7 ; Read, write and exec permissions
+
+; Start decryption
+    mov rsi, [r15 + 0x10] ; Load Randomized Base Address
+    mov rdi, [r15 + 0x18] ; Load Original Virtual Address
+    add rsi, rdi          ; Compute Runtime Virtual Address
     xor rdi, rdi
     mov al, 0x20
 decrypt_loop:
@@ -96,29 +107,10 @@ decrypt_loop:
     cmp rdi, [rsp]
     jne decrypt_loop
 
-;     mov rsi, [rsp + 8]
-;     mov al, 0x20
-;     cmp byte [rsi], 0x31
-;     je bien
-
-
-;     mov rax, 1
-;     mov rdi, 1
-;     lea rsi, [rel b]
-;     mov rdx, 12
-;     syscall
-;     jmp decrypt_done
-
-; bien:
-;     mov rax, 1
-;     mov rdi, 1
-;     lea rsi, [rel a]
-;     mov rdx, 9
-;     syscall
-
+    mprotect 0x5 ; Read and exec permissions
 
 decrypt_done:
-    mov rax, [rsp+8]
+    mov rax, [r15 + 0x8]
     add rsp, WOODY_STACK_SIZE
     pop rsp
     pop rdx
