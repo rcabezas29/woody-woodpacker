@@ -4,6 +4,7 @@
 #include <melf.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 int	main(int argc, char **argv)
 {
@@ -38,8 +39,8 @@ int	main(int argc, char **argv)
 		perror("Unable to generate payload");
 		goto end;
 	}
-
-	if ((file = mmap(0, file_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, output_fd, 0)) == NULL)
+	ftruncate(output_fd, file_size + payload.size);
+	if ((file = mmap(0, file_size + payload.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, output_fd, 0)) == NULL)
 	{
 		perror("Unable to map file in memory");
 		goto end;
@@ -51,7 +52,6 @@ int	main(int argc, char **argv)
 		fprintf(stderr, "Unable to find .text section\n");
 		goto end;
 	}
-
 	if (inject_payload(file, file_size, payload.value, payload.size) == WOODY_ERR)
 	{
 		fprintf(stderr, "Error injecting code\n");

@@ -4,6 +4,8 @@
 #define MELF_MAGIC_NUMBER  0x464C457F
 #define MELF_CLASS64 2
 
+#define MELF_PT_NOTE 4
+
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -51,6 +53,7 @@ bool melf_is_elf64(uint8_t const *file, uint64_t const file_size);
 
 melf_program_header64 *melf_get_text_segment(uint8_t const *file);
 melf_program_header64 *melf_get_next_segment(uint8_t const *file, melf_program_header64 *current_segment);
+melf_program_header64 *melf_get_note_segment(uint8_t const *file);
 
 #ifdef MELF_IMPLEMENTATION
 
@@ -101,6 +104,23 @@ melf_program_header64 *melf_get_next_segment(uint8_t const *file, melf_program_h
     }
     return next_segment;
 }
+
+#include <elf.h>
+
+melf_program_header64 *melf_get_note_segment(uint8_t const *file)
+{
+	melf_file_header64 *file_header = (melf_file_header64 *)file;
+    melf_program_header64 *program_header;
+
+    for (Elf64_Half i = 0; i < file_header->program_entry_number; ++i)
+    {
+        program_header = (melf_program_header64 *)(file + file_header->program_header_offset + file_header->program_entry_size * i);
+        if (program_header->type == PT_NOTE)
+            return program_header;
+    }
+    return NULL;
+}
+
 
 #endif // MELF_IMPLEMENTATION 	
 
