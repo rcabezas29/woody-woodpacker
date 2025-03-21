@@ -33,8 +33,8 @@ woody_status generate_key(uint64_t const size, uint8_t key[size])
 	return WOODY_OK;
 }
 
-void	encrypt_xor(uint8_t *buffer, uint64_t const size, uint64_t const key_size, uint8_t const key[key_size])
-{
-	for (size_t i = 0; i < size; ++i)
-		buffer[i] ^= key[i % key_size];
-}
+// void	encrypt_xor(uint8_t *buffer, uint64_t const size, uint64_t const key_size, uint8_t const key[key_size])
+// {
+// 	for (size_t i = 0; i < size; ++i)
+// 		buffer[i] ^= key[i % key_size];
+// }
