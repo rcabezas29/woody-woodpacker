@@ -1,7 +1,4 @@
 #include <woody-woodpacker.h>
-#include <sys/syscall.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
 #include <melf.h>
 
 void	print_usage(void)
@@ -10,20 +7,18 @@ void	print_usage(void)
 	exit(WOODY_ERR);
 }
 
-off_t get_file_size(const char *input_file)
+off_t	get_file_size(const char *input_file)
 {
 	struct stat statbuf;
-	// if (syscall(SYS_fstat, input_file, &statbuf))
+
 	if (stat(input_file, &statbuf) == -1)
-	{
 		return -1;
-	}
 	return statbuf.st_size;
 }
 
 int create_output_file(const char *input_file, off_t file_size)
 {
-	int input_fd = -1, output_fd = -1;
+	int	input_fd = -1, output_fd = -1;
 
 	if ((input_fd = open(input_file, O_RDONLY)) == -1)
 	{

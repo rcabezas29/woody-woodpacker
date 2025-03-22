@@ -2,18 +2,15 @@
 
 #define MELF_IMPLEMENTATION
 #include <melf.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <unistd.h>
 
 int	main(int argc, char **argv)
 {
-	woody_status return_value = WOODY_ERR;
-	unsigned char key[KEY_SIZE + 1];
-	off_t file_size = 0;
-	int output_fd = -1;
-	payload_t payload = { .value = NULL, .size = 0};
-	uint8_t *file = NULL;
+	payload_t		payload = { .value = NULL, .size = 0};
+	off_t			file_size = 0;
+	int				output_fd = -1;
+	unsigned char	key[KEY_SIZE + 1];
+	uint8_t			*file = NULL;
+	woody_status	return_value = WOODY_ERR;
 
 	if (argc != 2)
 		print_usage();
@@ -39,6 +36,7 @@ int	main(int argc, char **argv)
 		perror("Unable to generate payload");
 		goto end;
 	}
+
 	ftruncate(output_fd, file_size + payload.size);
 	if ((file = mmap(0, file_size + payload.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, output_fd, 0)) == NULL)
 	{

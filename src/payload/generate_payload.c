@@ -1,7 +1,6 @@
 #include <woody-woodpacker.h>
-#include <string.h>
 
-woody_status generate_payload(payload_t *payload)
+woody_status	generate_payload(payload_t *payload)
 {
 	uint8_t *original_payload = (unsigned char *)payload_address;
 	payload->size = 0;
