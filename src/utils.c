@@ -3,7 +3,7 @@
 
 void	print_usage(void)
 {
-	printf("Usage: ./woody-woodpacker [ELF Binary]\n");
+	printf("Usage: ./woody-woodpacker FILE [-p KEY] \n");
 	exit(WOODY_ERR);
 }
 
@@ -58,22 +58,31 @@ error:
 
 void    *ft_memcpy(void *dest, const void *src, size_t n)
 {
-        size_t  i;
+	size_t  i;
 
-        i = 0;
-        while (i != n)
-        {
-                ((unsigned char *)dest)[i] = ((unsigned char *)src)[i];
-                ++i;
-        }
-        return (dest);
+	i = 0;
+	while (i != n)
+	{
+		((unsigned char *)dest)[i] = ((unsigned char *)src)[i];
+		++i;
+	}
+	return (dest);
 }
 
 void    *ft_memmove(void *dest, const void *src, size_t n)
 {
-        if (src >= dest)
-                return (ft_memcpy(dest, src, n));
-        while (n-- != 0)
-                ((unsigned char *)dest)[n] = ((unsigned char *)src)[n];
-        return (dest);
+	if (src >= dest)
+		return (ft_memcpy(dest, src, n));
+	while (n-- != 0)
+		((unsigned char *)dest)[n] = ((unsigned char *)src)[n];
+	return (dest);
+}
+
+size_t	ft_strlen(const char *str)
+{
+	size_t	i = 0;
+
+	while (str[i])
+		++i;
+	return i;
 }

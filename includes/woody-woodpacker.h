@@ -22,6 +22,7 @@ typedef uint8_t woody_status;
 #define NEP		0xABBAABBAABBAABBA // New Entry Point
 #define OVA 	0xDEEDDEEDDEEDDEED // Original virtual address
 #define CSZ		0xCEECCEECCEECCEEC // Code Size
+#define KSZ		0xCFFCCFFCCFFCCFFC // Key Size
 
 #define NOP_64	0x90
 
@@ -31,7 +32,7 @@ typedef struct {
 } payload_t;
 
 // inject_payload.c
-woody_status	inject_payload(unsigned char *file, uint64_t file_size, unsigned char *payload, uint64_t payload_size);
+woody_status	inject_payload(unsigned char *file, uint64_t file_size, payload_t payload, uint64_t key_size);
 
 // encrypt.c
 woody_status	generate_key(uint64_t const size, uint8_t key[size]);
@@ -45,6 +46,7 @@ off_t			get_file_size(const char *input_file);
 int				create_output_file(const char *input_file, off_t file_size);
 void			*ft_memcpy(void *dest, const void *src, size_t n);
 void			*ft_memmove(void *dest, const void *src, size_t n);
+size_t			ft_strlen(const char *str);
 
 
 // generate_payload.c

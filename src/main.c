@@ -11,16 +11,35 @@ int	main(int argc, char **argv)
 	uint8_t			key[KEY_SIZE + 1];
 	uint8_t			*file = NULL;
 	woody_status	return_value = WOODY_ERR;
+	uint64_t		key_size;
 
-	if (argc != 2)
-		print_usage();
-
-	key[KEY_SIZE] = '\0';
-	if (generate_key(KEY_SIZE, key) == WOODY_ERR)
+	if (argc == 2)
 	{
-		perror("Unable to generate encryption key");
-		return WOODY_ERR;
+		key_size = KEY_SIZE;
+		if (generate_key(key_size, key) == WOODY_ERR)
+		{
+			perror("Unable to generate encryption key");
+			return WOODY_ERR;
+		}
 	}
+	else if (argc == 4 && *argv[2] && *((uint16_t *)argv[2]) == *((uint16_t *)"-p"))
+	{
+		key_size = ft_strlen(argv[3]);
+		if (key_size > 64)
+		{
+			fprintf(stderr, "Key must be as much as 64 bytes long\n");
+			goto end;
+		}
+		else if (key_size == 0)
+		{
+			fprintf(stderr, "Key must be at least 1 byte long\n");
+			goto end;
+		}
+		ft_memcpy(key, argv[3], key_size);
+	}
+	else
+		print_usage();
+	key[key_size] = '\0';
 
 	if ((file_size = get_file_size(argv[1])) == -1)
 	{
@@ -53,12 +72,12 @@ int	main(int argc, char **argv)
 		fprintf(stderr, "Unable to find .text section\n");
 		goto end;
 	}
-	if (inject_payload(file, file_size, payload.value, payload.size) == WOODY_ERR)
+	if (inject_payload(file, file_size, payload, key_size) == WOODY_ERR)
 	{
 		fprintf(stderr, "Error injecting code\n");
 		goto end;
 	}
-	encrypt_xor(file + text_segment->offset, text_segment->file_size, KEY_SIZE, key);
+	encrypt_xor(file + text_segment->offset, text_segment->file_size, key_size, key);
 	printf("key_value: %s\n", key);
 
 	return_value = WOODY_OK;
