@@ -4,6 +4,8 @@
 ; key_size (rdx)
 ; key (rcx)
 
+section .note.GNU-stack
+section .text
 global encrypt_xor
 
 encrypt_xor:

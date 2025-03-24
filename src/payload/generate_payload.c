@@ -8,6 +8,6 @@ woody_status	generate_payload(payload_t *payload)
 		++payload->size;
 	if ((payload->value = malloc(payload->size * sizeof(char))) == NULL)
 		return WOODY_ERR;
-	memcpy(payload->value, original_payload, payload->size);
+	ft_memcpy(payload->value, original_payload, payload->size);
 	return WOODY_OK;
 }

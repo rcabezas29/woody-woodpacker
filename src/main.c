@@ -8,7 +8,7 @@ int	main(int argc, char **argv)
 	payload_t		payload = { .value = NULL, .size = 0};
 	off_t			file_size = 0;
 	int				output_fd = -1;
-	unsigned char	key[KEY_SIZE + 1];
+	uint8_t			key[KEY_SIZE + 1];
 	uint8_t			*file = NULL;
 	woody_status	return_value = WOODY_ERR;
 

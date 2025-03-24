@@ -43,6 +43,9 @@ void			encrypt_xor(uint8_t *buffer, uint64_t const size, uint64_t const key_size
 void			print_usage(void);
 off_t			get_file_size(const char *input_file);
 int				create_output_file(const char *input_file, off_t file_size);
+void			*ft_memcpy(void *dest, const void *src, size_t n);
+void			*ft_memmove(void *dest, const void *src, size_t n);
+
 
 // generate_payload.c
 woody_status	generate_payload(payload_t *payload);

@@ -73,33 +73,6 @@ payload_address:
     mov rsi, OVA
     mov [r15 + 0x18], rsi
 
-    jmp print_woody
-
-
-    woody_string db '....WOODY....', 0xA
-    woody_len equ $-woody_string
-
-    ask_key_string db 'key: '
-    key_string_len equ $-ask_key_string
-
-    error_string db 'Wrong key size!', 0xA
-    error_string_len equ $-error_string
-
-    get_rip:
-        mov rax, [rsp]
-        ret
-
-    error:
-        mov rax, SYS_WRITE
-        mov rdi, STDOUT
-        lea rsi, [rel error_string]
-        mov rdx, error_string_len
-        syscall
-
-        mov rax, SYS_EXIT
-        mov rdi, 1
-        syscall
-
 print_woody:
     mov rax, SYS_WRITE
     mov rdi, STDOUT
@@ -160,4 +133,29 @@ decrypt_done:
     pop rsp
     pop rdx
     jmp rax
+
+    error:
+        mov rax, SYS_WRITE
+        mov rdi, STDOUT
+        lea rsi, [rel error_string]
+        mov rdx, error_string_len
+        syscall
+
+        mov rax, SYS_EXIT
+        mov rdi, 1
+        syscall
+
+    get_rip:
+        mov rax, [rsp]
+        ret
+
+    woody_string db '....WOODY....', 0xA
+    woody_len equ $-woody_string
+
+    ask_key_string db 'key: '
+    key_string_len equ $-ask_key_string
+
+    error_string db 'Wrong key size!', 0xA
+    error_string_len equ $-error_string
+
     nop ; everything is going to fail if this nop is deleted

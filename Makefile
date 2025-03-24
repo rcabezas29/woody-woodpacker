@@ -10,7 +10,7 @@ CFLAGS = -Wall -Wextra -Werror -Wshadow
 NASM = nasm
 NASM_FLAGS = -f elf64
 
-LDFLAGS = -z noexecstack
+LDFLAGS = 
 
 BUILD_DIR := build
 SRC_DIR := src

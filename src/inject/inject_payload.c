@@ -31,6 +31,6 @@ woody_status	inject_payload(unsigned char *file, uint64_t file_size, unsigned ch
 	*((uint64_t *)find_value(payload, CSZ)) = text_segment->memory_size;
 
 	file_header->entry_point = payload_segment->virtual_address;
-	memmove(file + file_size, payload, payload_size);
+	ft_memmove(file + file_size, payload, payload_size);
 	return WOODY_OK;
 }
