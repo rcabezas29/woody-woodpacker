@@ -36,8 +36,11 @@ int	main(int argc, char **argv)
 		perror("Unable to generate payload");
 		goto end;
 	}
-
-	ftruncate(output_fd, file_size + payload.size);
+	if (syscall(SYS_ftruncate, output_fd, file_size + payload.size) == -1)
+	{
+		perror("Unable to truncate file");
+		goto end;
+	}
 	if ((file = mmap(0, file_size + payload.size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, output_fd, 0)) == NULL)
 	{
 		perror("Unable to map file in memory");
