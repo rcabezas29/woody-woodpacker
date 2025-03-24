@@ -16,8 +16,8 @@ BUILD_DIR := build
 SRC_DIR := src
 INC_DIR := includes
 
-SRCS := $(shell find $(SRC_DIR) -name '*.c')
-SRCS_ASM := $(shell find $(SRC_DIR) -name '*.s')
+SRCS := src/encrypt/encrypt.c src/inject/inject_payload.c src/payload/generate_payload.c src/main.c src/utils.c
+SRCS_ASM := src/encrypt/encrypt_xor.s src/payload/payload.s
 OBJS := $(SRCS:%.c=$(BUILD_DIR)/%.o)
 OBJS += $(SRCS_ASM:%.s=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:%.o=%.d)
