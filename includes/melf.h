@@ -54,6 +54,7 @@ bool melf_is_elf64(uint8_t const *file, uint64_t const file_size);
 melf_program_header64 *melf_get_text_segment(uint8_t const *file);
 melf_program_header64 *melf_get_next_segment(uint8_t const *file, melf_program_header64 * current_segment);
 melf_program_header64 *melf_get_note_segment(uint8_t const *file);
+melf_program_header64 *melf_get_max_virtual_address(uint8_t const *file);
 
 #ifdef MELF_IMPLEMENTATION
 
@@ -120,6 +121,20 @@ melf_program_header64 *melf_get_note_segment(uint8_t const *file)
             return program_header;
     }
     return NULL;
+}
+
+melf_program_header64 *melf_get_max_virtual_address(uint8_t const *file)
+{
+    melf_file_header64 *file_header = (melf_file_header64 *) file;
+    melf_program_header64 *program_header, *max_virtual_address = NULL;
+
+    for (Elf64_Half i = 0; i < file_header->program_entry_number; ++i) {
+        program_header =
+            (melf_program_header64 *) (file + file_header->program_header_offset + file_header->program_entry_size * i);
+        if (max_virtual_address == NULL || program_header->virtual_address > max_virtual_address->virtual_address)
+            max_virtual_address = program_header;
+    }
+    return max_virtual_address;
 }
 
 #endif                          // MELF_IMPLEMENTATION

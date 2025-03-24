@@ -26,6 +26,8 @@ typedef uint8_t woody_status;
 
 #define NOP_64	0x90
 
+#define PAGE_SIZE 0x1000
+
 typedef struct {
     uint8_t *value;
     uint64_t size;
